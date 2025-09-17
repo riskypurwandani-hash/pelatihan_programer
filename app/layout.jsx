@@ -4,7 +4,7 @@ import { Inter } from "next/font/google";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Layanan Publik",
+  title: "Portal Layanan Publik Bogor",
   description: "Sistem Layanan Publik Mobile Responsive",
 };
 
@@ -20,6 +20,7 @@ export default function RootLayout({ children }) {
     <html lang="id">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/icon.png" />
       </head>
       <body className={inter.className}>
         {children}
