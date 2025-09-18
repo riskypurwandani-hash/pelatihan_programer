@@ -146,13 +146,37 @@ export async function POST(request) {
       );
     }
 
+    // Validate KTP/NIK: exactly 16 digits
+    if (!/^\d{16}$/.test(nik)) {
+      return NextResponse.json(
+        { message: "Nomor KTP harus 16 digit" },
+        { status: 400 }
+      );
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return NextResponse.json(
+        { message: "Format email tidak valid" },
+        { status: 400 }
+      );
+    }
+
+    // Normalize phone number to +62 format
+    const normalizedPhone = normalizePhoneNumber(no_wa);
+    // Validate normalized phone number (accept + and 8-15 digits total)
+    if (!/^\+\d{8,15}$/.test(normalizedPhone)) {
+      return NextResponse.json(
+        { message: "Nomor telepon tidak valid" },
+        { status: 400 }
+      );
+    }
+
     // Generate tracking code
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(2, 8).toUpperCase();
     const tracking_code = `WS-${timestamp}-${random}`;
-
-    // Normalize phone number to +62 format
-    const normalizedPhone = normalizePhoneNumber(no_wa);
 
     // Create submission
     const submission = await Submission.create({

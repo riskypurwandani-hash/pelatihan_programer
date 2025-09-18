@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Table, Select, message, Card, Row, Col } from "antd";
+import { Table, Select, message, Card, Row, Col, Input } from "antd";
 import {
   PieChart,
   Pie,
@@ -19,6 +19,8 @@ export default function AdminDashboard() {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [searchText, setSearchText] = useState("");
+  const [sortValue, setSortValue] = useState("created_desc");
   const [chartData, setChartData] = useState([]);
   const [updatingStatus, setUpdatingStatus] = useState({}); // Track which submission is being updated
   const [refreshing, setRefreshing] = useState(false); // Track refresh loading state
@@ -55,8 +57,17 @@ export default function AdminDashboard() {
       const forceRefresh = Date.now();
       const cacheBuster = Math.random().toString(36).substring(7);
 
+      const params = new URLSearchParams({
+        t: String(timestamp),
+        r: random,
+        force: String(forceRefresh),
+        cb: cacheBuster,
+        _: String(Date.now()),
+        q: searchText,
+        sort: sortValue,
+      });
       const response = await fetch(
-        `/api/admin/submissions?t=${timestamp}&r=${random}&force=${forceRefresh}&cb=${cacheBuster}&_=${Date.now()}`,
+        `/api/admin/submissions?${params.toString()}`,
         {
           headers: {
             "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
@@ -738,7 +749,15 @@ export default function AdminDashboard() {
 
         {/* Table */}
         <Card title="Daftar Pengajuan">
-          <div className="mb-4">
+          <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+            <Input
+              placeholder="Cari kode tracking / nama / jenis layanan"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              onPressEnter={() => fetchSubmissions(true)}
+              allowClear
+              disabled={loading}
+            />
             <Select
               value={statusFilter}
               onChange={setStatusFilter}
@@ -752,6 +771,18 @@ export default function AdminDashboard() {
               <Option value="DIPROSES">Sedang Diproses</Option>
               <Option value="SELESAI">Selesai</Option>
               <Option value="DITOLAK">Ditolak</Option>
+            </Select>
+            <Select
+              value={sortValue}
+              onChange={(v) => { setSortValue(v); fetchSubmissions(true); }}
+              style={{ width: "100%", maxWidth: 220 }}
+              placeholder="Urutkan"
+              disabled={loading}
+            >
+              <Option value="created_desc">Terbaru</Option>
+              <Option value="created_asc">Terlama</Option>
+              <Option value="status_asc">Status A-Z</Option>
+              <Option value="status_desc">Status Z-A</Option>
             </Select>
             {loading && (
               <span className="ml-2 text-xs sm:text-sm text-gray-500">

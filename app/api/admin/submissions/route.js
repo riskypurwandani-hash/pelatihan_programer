@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Op } from "sequelize";
 import { Submission, initializeDatabase } from "@/lib/sequelize";
 
 // Initialize database on first request
@@ -17,8 +18,10 @@ export async function GET(request) {
     // In a real application, you would verify admin authentication here
     // For workshop purposes, we'll skip authentication
 
-    // Parse cache-busting query parameters
+    // Parse query parameters
     const url = new URL(request.url);
+    const q = url.searchParams.get("q")?.trim() || "";
+    const sort = (url.searchParams.get("sort") || "created_desc").toLowerCase();
     const queryTimestamp = url.searchParams.get("t");
     const queryRandom = url.searchParams.get("r");
     const queryForce = url.searchParams.get("force");
@@ -36,14 +39,26 @@ export async function GET(request) {
       `[${new Date().toISOString()}] Query params: t=${queryTimestamp}, r=${queryRandom}, force=${queryForce}, cb=${queryCacheBuster}`
     );
 
-    // Force fresh query dengan random order strategy
-    const randomOrder = Math.random() > 0.5 ? "ASC" : "DESC";
-    console.log(
-      `[${new Date().toISOString()}] Using random order: ${randomOrder}`
-    );
+    // Determine sort order
+    let orderClause = ["created_at", "DESC"];
+    if (sort === "created_asc") orderClause = ["created_at", "ASC"];
+    if (sort === "status_asc") orderClause = ["status", "ASC"];
+    if (sort === "status_desc") orderClause = ["status", "DESC"];
+
+    // Build where clause for search
+    const whereClause = q
+      ? {
+          [Op.or]: [
+            { tracking_code: { [Op.iLike]: `%${q}%` } },
+            { nama: { [Op.iLike]: `%${q}%` } },
+            { jenis_layanan: { [Op.iLike]: `%${q}%` } },
+          ],
+        }
+      : undefined;
 
     const submissions = await Submission.findAll({
-      order: [["created_at", randomOrder]], // Random order untuk force fresh query
+      where: whereClause,
+      order: [orderClause],
       attributes: [
         "id",
         "tracking_code",

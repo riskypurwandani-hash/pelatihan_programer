@@ -60,19 +60,21 @@ export default function NewSubmission() {
     }
 
     if (!formData.nik.trim()) {
-      newErrors.nik = "NIK wajib diisi";
-    } else if (formData.nik.length !== 16) {
-      newErrors.nik = "NIK harus 16 digit";
-    } else if (!/^\d+$/.test(formData.nik)) {
-      newErrors.nik = "NIK hanya boleh berisi angka";
+      newErrors.nik = "Nomor KTP harus 16 digit";
+    } else if (!/^\d{16}$/.test(formData.nik)) {
+      newErrors.nik = "Nomor KTP harus 16 digit";
     }
 
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    if (!formData.email.trim()) {
+      newErrors.email = "Email wajib diisi";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Format email tidak valid";
     }
 
     if (!formData.no_wa.trim()) {
-      newErrors.no_wa = "Nomor WhatsApp wajib diisi";
+      newErrors.no_wa = "Nomor telepon wajib diisi";
+    } else if (!/^\d+$/.test(formData.no_wa.trim())) {
+      newErrors.no_wa = "Nomor telepon hanya boleh berisi angka";
     }
 
     if (!formData.jenis_layanan) {
